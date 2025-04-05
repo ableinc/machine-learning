@@ -3,12 +3,10 @@ import pandas as pd
 from pandas import DataFrame
 import numpy as np
 import tensorflow as tf
-from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.metrics import classification_report
-from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
-from datetime import datetime
-from datasets import load_dataset, Dataset
+from datasets import load_dataset
 
 # Load CSV
 # dataset: https://huggingface.co/datasets/nateraw/us-accidents
@@ -17,9 +15,9 @@ if os.path.isfile('datasets/accident_data.csv'):
     df = pd.read_csv('datasets/accident_data.csv')
 else:
     # Huggingface datasets save path: ~/.cache/huggingface/datasets
-    # dataset = Dataset.from_pandas(df)
     dataset = load_dataset("nateraw/us-accidents")
-    df = dataset.to_pandas()
+    df = pd.DataFrame(dataset['train'])
+    # df.to_csv("datasets/accident_data.csv", index=True) # Save dataset locally
 
 # Ensure dataset has been loaded
 if df is None:
