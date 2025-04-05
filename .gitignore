@@ -3,5 +3,4 @@
 ml
 *.h5
 *.keras
-*_checkpoint
-*-checkpoint
+accident_data.csv

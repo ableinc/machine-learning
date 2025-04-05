@@ -12,9 +12,11 @@ from datasets import load_dataset
 # dataset: https://huggingface.co/datasets/nateraw/us-accidents
 df: DataFrame = None
 if os.path.isfile('datasets/accident_data.csv'):
+    print('datasets/accident_data.csv file found locally..')
     df = pd.read_csv('datasets/accident_data.csv')
 else:
     # Huggingface datasets save path: ~/.cache/huggingface/datasets
+    print('datasets/accident_data.csv file NOT found locally. Downloading from Huggingface.\nNote: You will need to update the header using the clean_header.py or update the df[] methods to use the correct letter case.')
     dataset = load_dataset("nateraw/us-accidents")
     df = pd.DataFrame(dataset['train'])
     # df.to_csv("datasets/accident_data.csv", index=True) # Save dataset locally
@@ -27,7 +29,7 @@ if df is None:
 df = df.dropna(thresh=len(df.columns) * 0.8)
 
 # Convert times to datetime and extract time-series features
-df['start_time'] = pd.to_datetime(df['start_time'])
+df['start_time'] = pd.to_datetime(df['start_time'], format="ISO8601")
 df['hour'] = df['start_time'].dt.hour
 df['day'] = df['start_time'].dt.dayofweek
 df['month'] = df['start_time'].dt.month
@@ -36,7 +38,7 @@ df['is_weekend'] = df['day'] >= 5
 df['is_night'] = (df['hour'] < 6) | (df['hour'] > 20)
 
 # Duration in minutes
-df['end_time'] = pd.to_datetime(df['end_time'])
+df['end_time'] = pd.to_datetime(df['end_time'], format="ISO8601")
 df['duration_minutes'] = (df['end_time'] - df['start_time']).dt.total_seconds() / 60
 
 # Drop unused columns
@@ -58,7 +60,9 @@ df.fillna(df.mean(numeric_only=True), inplace=True)
 # Split
 X = df.drop('severity', axis=1)
 y = df['severity']
-
+y = y - 1  # Shift severity labels from [1, 2, 3, 4] to [0, 1, 2, 3]
+num_classes = df['severity'].nunique()
+# print("Unique severity labels:", df['severity'].unique())
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
@@ -69,13 +73,13 @@ def build_model(hp_units=64, hp_layers=2, hp_learning_rate=0.001):
     model.add(tf.keras.layers.Input(shape=(X_train.shape[1],)))
     for _ in range(hp_layers):
         model.add(tf.keras.layers.Dense(hp_units, activation='relu'))
-    model.add(tf.keras.layers.Dense(4, activation='softmax'))
+    model.add(tf.keras.layers.Dense(num_classes, activation='softmax'))
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=hp_learning_rate),
                   loss='sparse_categorical_crossentropy', metrics=['accuracy'])
     return model
 
 # Checkpoint path
-checkpoint_path = "checkpoints/accident_model_checkpoint"
+checkpoint_path = "checkpoints/accident_model_checkpoint.weights.h5"
 checkpoint_dir = os.path.dirname(checkpoint_path)
 
 # Create callbacks
@@ -103,7 +107,7 @@ lr_scheduler_callback = tf.keras.callbacks.ReduceLROnPlateau(
 )
 
 # Detect multi-GPU strategy
-devices = tf.config.list_logical_devices('GPU')
+devices = tf.config.list_physical_devices('GPU')
 if len(devices) > 1:
     print(f"🚀 Multi-GPU detected: {len(devices)} GPUs. Using MirroredStrategy.")
     strategy = tf.distribute.MirroredStrategy()

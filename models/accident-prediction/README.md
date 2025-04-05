@@ -185,6 +185,14 @@ Place your cleaned dataset as ```accident_data.csv``` in the same directory.
 
 ## Run the Script
 
+Clean data:
+
+```python
+python clean_headers.py /path/to/US_Accidents_Dec21_updated.csv
+```
+
+Open the ```.csv``` file and replace the header with the text output
+
 ```
 python main.py
 ```
