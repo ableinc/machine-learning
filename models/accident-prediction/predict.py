@@ -24,7 +24,6 @@ def preprocess_input(
     """Preprocess input data for prediction"""
     # Create DataFrame with single row from input
     input_df = pd.DataFrame([input_data])
-    
     # Process datetime if provided as a string
     if 'datetime' in input_data:
         dt = pd.to_datetime(input_data['datetime'])
@@ -34,7 +33,7 @@ def preprocess_input(
         input_df['year'] = dt.year
         input_df['is_weekend'] = int(dt.dayofweek >= 5)
         input_df['is_night'] = int((dt.hour < 6) | (dt.hour > 20))
-    
+
     # Handle boolean values
     for col in input_df.columns:
         if input_df[col].dtype == bool:
