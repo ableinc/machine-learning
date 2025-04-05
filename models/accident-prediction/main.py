@@ -13,9 +13,10 @@ from datasets import load_dataset, Dataset
 # Load CSV
 # dataset: https://huggingface.co/datasets/nateraw/us-accidents
 df: DataFrame = None
-if os.path.isfile('accident_data.csv'):
-    df = pd.read_csv('accident_data.csv')
+if os.path.isfile('datasets/accident_data.csv'):
+    df = pd.read_csv('datasets/accident_data.csv')
 else:
+    # Huggingface datasets save path: ~/.cache/huggingface/datasets
     # dataset = Dataset.from_pandas(df)
     dataset = load_dataset("nateraw/us-accidents")
     df = dataset.to_pandas()
@@ -76,7 +77,7 @@ def build_model(hp_units=64, hp_layers=2, hp_learning_rate=0.001):
     return model
 
 # Checkpoint path
-checkpoint_path = "checkpoints/model_checkpoint"
+checkpoint_path = "checkpoints/accident_model_checkpoint"
 checkpoint_dir = os.path.dirname(checkpoint_path)
 
 # Create callbacks

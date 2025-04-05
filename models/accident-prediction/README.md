@@ -145,7 +145,7 @@ print("Class Probabilities:", result[1])
 
 ## 📁 Dataset
 
-The model expects a CSV dataset (`accident_data.csv`) or it will pull the data from huggingface: https://huggingface.co/datasets/nateraw/us-accidents . The CSV file should have the following columns:
+The model expects a CSV dataset (`datasets/accident_data.csv`) or it will pull the data from Huggingface: https://huggingface.co/datasets/nateraw/us-accidents . Hugginface saves datasets to ```~/.cache/huggingface/datasets```. The CSV file should have the following columns:
 
 ```
 id, severity, start_time, end_time, start_lat, start_lng, end_lat, end_lng, distance, description, number, street, side, city, country, state, zipcode, timezone, airport_code, weather_timestamp, temperature, wind_chill, humidity, pressure, visibility, wind_direction, wind_speed, precipitation, weather_condition, amenity, bump, crossing, give_way, junction, no_exit, railway, roundabout, station, stop, traffic_calming, traffic_signal, turning_loop, sunrise_sunset, civil_twilight, nautical_twilight, astronomical_twilight
@@ -171,6 +171,8 @@ id, severity, start_time, end_time, start_lat, start_lng, end_lat, end_lng, dist
 
 1. **Install Dependencies**
 
+**Note: Python version 3.11**
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -184,7 +186,7 @@ Place your cleaned dataset as ```accident_data.csv``` in the same directory.
 ## Run the Script
 
 ```
-python accident_model.py
+python main.py
 ```
 
 Training will begin and resume from the last checkpoint if interrupted.
