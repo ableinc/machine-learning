@@ -31,17 +31,30 @@ df = df.dropna(thresh=len(df.columns) * 0.8)
 
 # Convert times to datetime and extract time-series features
 df['start_time'] = pd.to_datetime(df['start_time'], format="ISO8601")
+df['end_time'] = pd.to_datetime(df['end_time'], format="ISO8601")
 df['hour'] = df['start_time'].dt.hour
 df['day'] = df['start_time'].dt.dayofweek
 df['month'] = df['start_time'].dt.month
 df['year'] = df['start_time'].dt.year
 df['is_weekend'] = df['day'] >= 5
 df['is_night'] = (df['hour'] < 6) | (df['hour'] > 20)
-
-# Duration in minutes
-df['end_time'] = pd.to_datetime(df['end_time'], format="ISO8601")
+df['is_rush_hour'] = (((df['hour'] >= 7) & (df['hour'] <= 9)) | 
+                         ((df['hour'] >= 16) & (df['hour'] <= 18))).astype(int)
+# Calculate accident duration
 df['duration_minutes'] = (df['end_time'] - df['start_time']).dt.total_seconds() / 60
 
+# Create season feature
+df['season'] = df['month'].apply(lambda x: 1 if x in [12, 1, 2] else  # Winter
+                                2 if x in [3, 4, 5] else  # Spring
+                                3 if x in [6, 7, 8] else  # Summer
+                                4)  # Fall
+
+# Identify holidays (simplified approach)
+holidays = [(1, 1), (7, 4), (12, 25)]  # New Year, Independence Day, Christmas
+df['is_holiday'] = df.apply(lambda x: int((x['month'], x['day']) in holidays), axis=1)
+df['temp_humidity'] = df['temperaturef'] * df['humidity']
+df['visibility_night'] = df['visibilitymi'] * df['is_night']
+df['wind_precip'] = df['wind_speedmph'] * df['precipitationin']
 # Drop unused columns
 drop_cols = ['id', 'description', 'start_time', 'end_time', 'weather_timestamp']
 df.drop(columns=[col for col in drop_cols if col in df.columns], inplace=True)
