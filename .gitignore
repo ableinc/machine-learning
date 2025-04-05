@@ -3,3 +3,5 @@
 ml
 *.h5
 *.keras
+*_checkpoint
+*-checkpoint
