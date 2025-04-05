@@ -4,3 +4,7 @@ ml
 *.h5
 *.keras
 accident_data.csv
+*.pkl
+*.log
+tensorboard/
+logs/tensorboard/

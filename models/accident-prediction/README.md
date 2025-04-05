@@ -194,7 +194,7 @@ python clean_headers.py /path/to/US_Accidents_Dec21_updated.csv
 Open the ```.csv``` file and replace the header with the text output
 
 ```
-python main.py
+python train.py
 ```
 
 Training will begin and resume from the last checkpoint if interrupted.

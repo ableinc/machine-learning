@@ -3,6 +3,7 @@ import pandas as pd
 from pandas import DataFrame
 import numpy as np
 import tensorflow as tf
+import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.metrics import classification_report
@@ -53,7 +54,6 @@ for col in cat_cols:
     le = LabelEncoder()
     df[col] = le.fit_transform(df[col])
     label_encoders[col] = le
-
 # Fill NaNs
 df.fillna(df.mean(numeric_only=True), inplace=True)
 
@@ -66,6 +66,12 @@ num_classes = df['severity'].nunique()
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+# Save after training
+joblib.dump(scaler, "artifacts/scaler.pkl")
+joblib.dump(label_encoders, "artifacts/label_encoders.pkl")
+joblib.dump(list(X.columns), "artifacts/input_features.pkl")
+joblib.dump(list(cat_cols), "artifacts/cat_cols.pkl")
 
 # Define model builder for hyperparameter tuning
 def build_model(hp_units=64, hp_layers=2, hp_learning_rate=0.001):
@@ -130,52 +136,12 @@ with strategy.scope():
         callbacks=[checkpoint_callback, early_stopping_callback, lr_scheduler_callback]
     )
 
-    model.save("final_accident_model.keras")
-    print("✅ Final model saved to 'final_accident_model.keras'")
+    model.save("final/final_accident_model.keras")
+    print("✅ Final model saved to 'final/final_accident_model.keras'")
 
 # Evaluation
 loss, acc = model.evaluate(X_test, y_test)
 print("Test Accuracy:", acc)
 print(classification_report(y_test, np.argmax(model.predict(X_test), axis=1)))
 
-# Prediction with arbitrary input
-input_features = X.columns
-
-def predict_accident_severity(input_data: dict):
-    input_df = pd.DataFrame([input_data])
-    for col in input_features:
-        if col not in input_df.columns:
-            input_df[col] = 0
-    input_df = input_df[input_features]
-
-    # Encode categorical
-    for col in cat_cols:
-        if col in input_df.columns:
-            le = label_encoders[col]
-            input_df[col] = le.transform(input_df[col].astype(str))
-
-    input_scaled = scaler.transform(input_df)
-    prediction = model.predict(input_scaled)
-    return int(np.argmax(prediction)), prediction[0]
-
-# Example
-example = {
-    'temperature': 68,
-    'humidity': 0.6,
-    'wind_speed': 12,
-    'city': 'New York',
-    'state': 'NY',
-    'weather_condition': 'Clear',
-    'side': 'R',
-    'roundabout': False,
-    'hour': 15,
-    'day': 2,
-    'month': 5,
-    'year': 2023,
-    'is_weekend': 0,
-    'is_night': 0,
-    'duration_minutes': 25
-}
-result = predict_accident_severity(example)
-print("Predicted Severity:", result[0])
-print("Probabilities:", result[1])
+print("Run python models/accident-prediction/predict.py to make accurate predictions")
